@@ -21,6 +21,7 @@ var lastClientY;
 
 var videoElement;
 var modelTexture;
+var copyVideo;
 
 //refresh function used to request animation frame after moving slider in HTML
 function refresh(){
@@ -194,8 +195,14 @@ function init(){
     videoElement = document.getElementById("video");
         
     modelTexture    = gl.createTexture();
+    // put 1 pixel in it so we can render before the video starts
+    gl.bindTexture(gl.TEXTURE_2D, modelTexture);
+    gl.texImage2D(
+        gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE,
+        new Uint8Array([255, 255, 255, 255]));
    
     videoElement.addEventListener("canplaythrough", startVideo, true);
+    videoElement.addEventListener("playing", function() { copyVideo = true; }, true);
     videoElement.addEventListener("ended", videoDone, true);
     
    /* videoElement.onload   = function() {
@@ -205,7 +212,7 @@ function init(){
     
     videoElement.crossOrigin  = "anonymous";
     videoElement.src = "Firefox.ogv";
-    
+    videoElement.load();
     
     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);                               
     gl.enable(gl.DEPTH_TEST);
@@ -217,7 +224,9 @@ function init(){
 
 
 function draw(){
-    updateTexture();
+    if (copyVideo) {
+      updateTexture();
+    }
     //compose matrices for transformations
     var viewMatrix          = new Matrix4();
     var projectionMatrix    = new Matrix4();  
